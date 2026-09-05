@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Tier 1 — Alert Triage</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login" class="login">
+  <div class="loginBox">
+    <div class="logo">AI</div>
+    <h1>AI Tier 1</h1>
+    <div class="roles" id="roleCards"></div>
+    <div class="foot" id="loginFoot"></div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="brand"><div class="logo sm">AI</div><b>AI Tier 1</b></div>
+    <nav class="nav" id="nav">
+      <button data-p="dash" class="on">Dashboard</button>
+      <button data-p="alerts">Alerts <b id="navCount"></b></button>
+    </nav>
+    <div class="topRight">
+      <span class="health" id="health"><i></i><span id="healthText">Working</span></span>
+      <button class="iconBtn" id="helpBtn" title="Keyboard shortcuts (press ?)">?</button>
+      <button class="btn ghost" id="switchRole"><span class="who" id="roleInitial"></span><span id="roleName"></span> ▾</button>
+    </div>
+  </header>
+
+  <!-- dashboard page -->
+  <section class="page dash" id="pageDash"></section>
+
+  <!-- alerts page -->
+  <section class="page" id="pageAlerts" hidden>
+    <div class="grid" id="grid">
+      <aside class="queue" id="queuePane">
+        <div class="qTools">
+          <input type="search" id="q" placeholder="Search alerts, people, devices…" autocomplete="off">
+          <select id="sort" title="Sort">
+            <option value="new">Newest</option>
+            <option value="sev">Most urgent</option>
+            <option value="conf">Least sure</option>
+          </select>
+        </div>
+        <div class="filters" id="filters"></div>
+        <div id="queueList"></div>
+      </aside>
+
+      <section class="work">
+        <div class="workbar">
+          <button class="tgl" id="tglLeft" title="Hide the list (press [ )">‹</button>
+          <span class="wbGap"></span>
+          <button class="tgl" id="tglRight" title="Hide the panel (press ] )">›</button>
+        </div>
+
+        <div id="empty" class="empty"></div>
+
+        <div id="case" hidden>
+          <div class="caseHead">
+            <div class="crumbs" id="crumbs"></div>
+            <h1 id="caseTitle"></h1>
+          </div>
+          <div id="verdictCard"></div>
+          <div class="steps" id="steps"></div>
+          <div id="livePanel" hidden><ol class="pipe" id="pipe"></ol></div>
+          <nav class="tabs" id="tabs"></nav>
+          <div id="tabBody"></div>
+        </div>
+      </section>
+
+      <aside class="side" id="side"></aside>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet">
+    <div class="sheetTop"><h2 id="modalTitle"></h2><button class="x" id="modalClose">✕</button></div>
+    <div class="sheetBody" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Contains the API key. See the security note in README.md.
+config.json
+
+# Runtime artefacts
+cache/
+srv.log
+srv.err
+*.txt
