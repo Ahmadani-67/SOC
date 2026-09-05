@@ -1,0 +1,9 @@
+# Never let a key into the build context.
+config.json
+
+.git
+.gitignore
+node_modules
+srv.log
+srv.err
+*.txt

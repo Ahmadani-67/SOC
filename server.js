@@ -35,7 +35,8 @@ function loadConfig() {
   }
   const num = (v, fallback) => (Number.isFinite(Number(v)) && v !== "" && v != null ? Number(v) : fallback);
   return {
-    port: num(process.env.SOC_PORT, num(f.port, 8787)),
+    // PORT first: every hosting platform injects it and expects the process to bind to it.
+    port: num(process.env.PORT, num(process.env.SOC_PORT, num(f.port, 8787))),
     provider: process.env.SOC_PROVIDER || f.provider || "inference endpoint",
     baseUrl: process.env.SOC_BASE_URL || f.baseUrl || "",
     model: process.env.SOC_MODEL || f.model || "",

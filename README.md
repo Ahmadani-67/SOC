@@ -57,6 +57,29 @@ is `callOne()` in `lib/agent.js` — swapping providers is one function.
 Typical end-to-end when running live: **8–25 seconds** per alert, against a human baseline of
 20–45 minutes.
 
+### Hosting it so a team can just open a link
+
+`render.yaml` deploys this straight from the repository — on Render, *New → Blueprint*, point it at
+this repo, and it picks the file up. There is also a `Dockerfile` for Azure Container Apps, Fly.io,
+Cloud Run or a plain VM.
+
+Both deploy with **no inference key**, which is the point: the committed verdict cache carries the
+whole walkthrough, so a hosted instance has no quota to burn and no secret to leak. Enrichment and
+the policy gate still run live on every request. Add `SOC_API_KEY` in the host's environment
+settings — never in `render.yaml`, which is public — only if you want live reasoning.
+
+Two things to know before you put a URL in front of people:
+
+- **There is no authentication.** The role picker is client-side and every endpoint takes `role`
+  from the request body, so anyone with the link can act as any role. That is fine for a demo you
+  are sharing deliberately and wrong for anything else.
+- **State is global and in memory.** Every visitor shares the same cases, audit log and switches,
+  and anyone can press **Reset**. For a walkthrough with a handful of people that is usually fine;
+  for a larger audience, expect them to interfere with each other.
+
+On Render's free plan the service sleeps after inactivity, so the first visit after a quiet spell
+takes about a minute to wake.
+
 ## What you are looking at
 
 Three alerts, chosen to land on one of each possible outcome. These are the actual verified results:

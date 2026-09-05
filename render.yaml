@@ -1,0 +1,20 @@
+# Render blueprint — hosts the console so a team can open a link instead of cloning.
+#
+# Deliberately deployed WITHOUT an inference key. The three built-in alerts replay from the
+# committed verdicts in cache/, so the whole walkthrough works with nothing to spend and nothing
+# to leak. Enrichment and the policy gate still run live on every request.
+#
+# To reason live instead, add SOC_BASE_URL, SOC_MODEL and SOC_API_KEY in the Render dashboard as
+# environment variables — never in this file, which is public.
+
+services:
+  - type: web
+    name: soc-ai-demo
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/metrics
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
