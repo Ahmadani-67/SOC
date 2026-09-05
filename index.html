@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Tier 1 Analyst — autonomous alert triage</title>
+<meta name="description" content="An autonomous Tier 1 SOC analyst that actually runs. The model classifies; deterministic code decides.">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Landing page for GitHub Pages. Served only by Pages — the Node app serves
+     public/ and never sees this file.
+
+     THE LIVE CONSOLE URL APPEARS TWICE BELOW, marked CONSOLE-URL. Render assigns
+     the host from the service name in render.yaml, but the .onrender.com
+     namespace is shared, so it may come back with a suffix. Update both if so.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<style>
+:root{
+  --bg:#080b11; --bg-2:#0b0f17; --surface:#121824; --surface-2:#182031;
+  --line:#1e2634; --line-2:#2c374a;
+  --txt:#e9eff7; --txt-2:#c2cede; --mut:#94a3b8; --dim:#67768d;
+  --blue:#5b9cff; --blue-bg:#101d33; --blue-line:#2a4a7c; --blue-ink:#a9caff;
+  --green:#3ddc84; --green-bg:#0c2318; --green-line:#1e5b3c; --green-ink:#8ef0b8;
+  --amber:#ffb224; --amber-bg:#291f0d; --amber-line:#5d4718; --amber-ink:#ffd88a;
+  --red:#ff5f6b;   --red-bg:#2a1219;   --red-line:#5c2530;   --red-ink:#ffa8b0;
+  --mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace;
+  --sans:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  --display:"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,sans-serif;
+  --lift:inset 0 1px 0 rgba(255,255,255,.045);
+  --sh-2:0 6px 20px -6px rgba(0,0,0,.55);
+  --sh-3:0 24px 60px -16px rgba(0,0,0,.7);
+  --e-out:cubic-bezier(.22,1,.36,1);
+  --r:10px; --r-lg:14px; --r-xl:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--txt);
+  font:16px/1.6 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:0 24px}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font:13px/1.5 var(--mono);color:var(--blue-ink);background:var(--blue-bg);
+  border:1px solid var(--blue-line);border-radius:5px;padding:1px 5px}
+h2{font:600 26px/1.25 var(--display);margin:0 0 6px;letter-spacing:-.02em}
+.lede{color:var(--mut);margin:0 0 26px;max-width:68ch}
+section{padding:60px 0;border-top:1px solid var(--line)}
+
+/* ── hero ── */
+.hero{padding:88px 0 68px;border:0;position:relative;overflow:hidden}
+.hero::before{
+  content:"";position:absolute;inset:-40% 20% auto -10%;height:520px;
+  background:radial-gradient(closest-side,rgba(91,156,255,.13),transparent);
+  pointer-events:none;
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;font:600 12px/1 var(--sans);
+  letter-spacing:.09em;text-transform:uppercase;color:var(--blue-ink);
+  background:var(--blue-bg);border:1px solid var(--blue-line);
+  border-radius:999px;padding:7px 13px;margin-bottom:22px;
+}
+.eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 3px rgba(61,220,132,.16)}
+h1{font:600 clamp(34px,5.4vw,52px)/1.08 var(--display);margin:0 0 20px;letter-spacing:-.032em}
+.thesis{
+  font:600 clamp(20px,2.6vw,26px)/1.35 var(--display);
+  color:var(--txt);margin:0 0 18px;letter-spacing:-.02em;
+}
+.thesis b{color:var(--green)}
+.sub{font-size:17px;color:var(--txt-2);max-width:64ch;margin:0 0 34px}
+
+.cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font:600 15px/1 var(--sans);padding:14px 22px;border-radius:var(--r);
+  border:1px solid transparent;cursor:pointer;
+  transition:transform .18s var(--e-out),box-shadow .18s var(--e-out),background .18s;
+}
+.btn:hover{text-decoration:none;transform:translateY(-1px)}
+.btn.primary{background:var(--blue);color:#06101f;box-shadow:var(--sh-2)}
+.btn.primary:hover{background:#7bb0ff;box-shadow:var(--sh-3)}
+.btn.ghost{background:var(--surface);color:var(--txt);border-color:var(--line-2);box-shadow:var(--lift)}
+.btn.ghost:hover{background:var(--surface-2)}
+.hint{font-size:13px;color:var(--dim);margin:14px 0 0}
+
+/* ── outcome cards ── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:8px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:20px;box-shadow:var(--lift);position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px}
+.card.close::before{background:var(--green)}
+.card.esc::before{background:var(--red)}
+.card.hold::before{background:var(--amber)}
+.tag{
+  display:inline-block;font:700 11px/1 var(--sans);letter-spacing:.08em;
+  text-transform:uppercase;padding:6px 10px;border-radius:999px;margin-bottom:13px;
+}
+.close .tag{background:var(--green-bg);color:var(--green-ink);border:1px solid var(--green-line)}
+.esc   .tag{background:var(--red-bg);color:var(--red-ink);border:1px solid var(--red-line)}
+.hold  .tag{background:var(--amber-bg);color:var(--amber-ink);border:1px solid var(--amber-line)}
+.card h3{font:600 16px/1.3 var(--sans);margin:0 0 7px}
+.card p{margin:0;font-size:14px;color:var(--mut)}
+.card .id{font:12px/1 var(--mono);color:var(--dim);display:block;margin-top:13px}
+
+/* ── pipeline ── */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.step{
+  background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);
+  padding:15px 16px;display:flex;gap:12px;align-items:flex-start;
+}
+.step .n{
+  flex:none;width:23px;height:23px;border-radius:6px;background:var(--surface-2);
+  border:1px solid var(--line-2);color:var(--mut);
+  font:600 12px/21px var(--mono);text-align:center;
+}
+.step.gate{border-color:var(--green-line);background:var(--green-bg)}
+.step.gate .n{background:var(--green);color:#06210f;border-color:transparent}
+.step.gate b{color:var(--green-ink)}
+.step b{display:block;font:600 14px/1.35 var(--sans);margin-bottom:2px}
+.step span{font-size:13px;color:var(--dim);line-height:1.45}
+
+/* ── split ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pane{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;box-shadow:var(--lift)}
+.pane h3{font:600 15px/1 var(--sans);margin:0 0 13px;display:flex;align-items:center;gap:9px}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.g{background:var(--green)} .dot.a{background:var(--amber)}
+.pane ul{margin:0;padding-left:19px;color:var(--mut);font-size:14px}
+.pane li{margin-bottom:6px}
+
+.note{
+  background:var(--amber-bg);border:1px solid var(--amber-line);border-left-width:3px;
+  border-radius:var(--r);padding:16px 18px;color:var(--amber-ink);font-size:14px;margin-top:22px
+}
+.note b{color:#ffe4ab}
+
+footer{border-top:1px solid var(--line);padding:40px 0 56px;color:var(--dim);font-size:13.5px}
+footer p{margin:0 0 9px;max-width:74ch}
+.flinks{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.flinks a{font-weight:600}
+
+@media (max-width:680px){
+  .split{grid-template-columns:1fr}
+  .hero{padding:60px 0 48px}
+  section{padding:48px 0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><i></i>Working demo · runs live</span>
+    <h1>AI Tier 1 Analyst</h1>
+    <p class="thesis">The model classifies. <b>Code decides.</b></p>
+    <p class="sub">
+      Alerts arrive, five enrichment sources are queried concurrently, a language model reasons over
+      the assembled evidence — and then a deterministic policy gate, which the model has no vote in,
+      decides what actually happens to the alert.
+    </p>
+    <div class="cta">
+      <!-- CONSOLE-URL (1 of 2) -->
+      <a class="btn primary" href="https://soc-ai-demo.onrender.com">Open the console →</a>
+      <a class="btn ghost" href="https://github.com/Ahmadani-67/SOC">View the source</a>
+    </div>
+    <p class="hint">Hosted on a free tier — if it has been idle, the first load takes about a minute to wake.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Three alerts, three outcomes</h2>
+    <p class="lede">
+      One the agent closes on its own, one it escalates with a complete evidence package, and one it
+      refuses to decide. These are the actual results, not illustrations.
+    </p>
+    <div class="cards">
+      <article class="card close">
+        <span class="tag">Closed</span>
+        <h3>A newsletter someone reported</h3>
+        <p>False Positive at 97% confidence. Every close condition met, so no human was needed.</p>
+        <span class="id">ALT-01</span>
+      </article>
+      <article class="card esc">
+        <span class="tag">Escalated</span>
+        <h3>A fake invoice phishing for credentials</h3>
+        <p>True Positive at 98%. Escalated with all 16 package sections, and the malicious mail soft-deleted.</p>
+        <span class="id">ALT-02</span>
+      </article>
+      <article class="card hold">
+        <span class="tag">Held</span>
+        <h3>Lisbon sign-in, 67 minutes after London</h3>
+        <p>Insufficient Information at 78%. It named the fact it could not obtain and who could answer it.</p>
+        <span class="id">ALT-03</span>
+      </article>
+    </div>
+    <div class="note">
+      <b>ALT-03 is the one to look at.</b> The evidence fits both a stolen password and a holiday, and
+      nothing in the telemetry separates them — HR leave records are not wired into the security tooling.
+      The agent does not guess. It holds, names the deciding fact, and says who can answer it. That is
+      why the console reports 67% agreement with the human verdicts, and why that number is the right
+      one rather than an embarrassing one.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What stops it closing a real attack</h2>
+    <p class="lede">
+      The question every manager, auditor and regulator asks first. The answer is structural, not a
+      matter of trusting the model.
+    </p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div><b>Pick-up &amp; parse</b><span>No queue, no severity filter. Nothing is skipped.</span></div></div>
+      <div class="step"><span class="n">2</span><div><b>Correlate</b><span>Shared infrastructure across alerts; benign indicators excluded.</span></div></div>
+      <div class="step"><span class="n">3</span><div><b>Enrich</b><span>Five sources at once. A source that fails is a recorded data gap.</span></div></div>
+      <div class="step gate"><span class="n">4</span><div><b>Hard triggers</b><span>Fifteen never-close rules, in code, before the model is asked anything.</span></div></div>
+      <div class="step"><span class="n">5</span><div><b>Reason</b><span>Constrained by a strict JSON schema — a closed set of five verdicts.</span></div></div>
+      <div class="step gate"><span class="n">6</span><div><b>Policy gate</b><span>The disposition is decided here. The model has no vote.</span></div></div>
+    </div>
+    <p class="lede" style="margin-top:26px">
+      The fifteen hard triggers are evaluated against enrichment facts <em>before</em> the model is
+      consulted. It can suggest one and be overruled; it cannot argue one away. A prompt injection that
+      fully captured the model still could not auto-close an alert — and refusals, content-filter blocks
+      and truncated answers are all treated as failures to triage, routing the alert to a human rather
+      than being read as "nothing to see here".
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Real and staged</h2>
+    <p class="lede">Stated plainly, because it protects the credibility of everything else.</p>
+    <div class="split">
+      <div class="pane">
+        <h3><span class="dot g"></span>Real</h3>
+        <ul>
+          <li>The pipeline and its concurrency</li>
+          <li>The reasoning and the structured verdict</li>
+          <li>The policy gate and the hard triggers</li>
+          <li>Package assembly and completeness validation</li>
+          <li>Metrics, audit log and server-side role enforcement</li>
+          <li>Every latency figure on screen</li>
+        </ul>
+      </div>
+      <div class="pane">
+        <h3><span class="dot a"></span>Staged</h3>
+        <ul>
+          <li>Alerts and the five enrichment sources are fixtures, not live connectors</li>
+          <li>Every identity, host and domain is fictional</li>
+          <li>Alert pick-up is instant; in production it is bounded by SIEM surfacing</li>
+          <li>Model verdicts replay from cache so the demo needs no API key</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="flinks">
+      <!-- CONSOLE-URL (2 of 2) -->
+      <a href="https://soc-ai-demo.onrender.com">Live console</a>
+      <a href="https://github.com/Ahmadani-67/SOC">Source on GitHub</a>
+      <a href="https://github.com/Ahmadani-67/SOC#known-gaps">Known gaps</a>
+    </div>
+    <p>
+      This is a demonstration, not a product. It has no authentication and its state is shared in
+      memory between everyone using it, so treat anything you do in the console as visible to other
+      visitors and expect a reset to clear it.
+    </p>
+    <p>
+      The README documents where the scaffolding is, including the inert wave-autonomy switches and
+      the endpoints with no interface. Reading that section is the fastest way to judge what is
+      actually built.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
