@@ -1,0 +1,15 @@
+{
+  "port": 8787,
+  "provider": "Azure AI Foundry",
+  "baseUrl": "https://YOUR-RESOURCE.services.ai.azure.com/openai/v1/",
+  "model": "YOUR-DEPLOYMENT-NAME",
+  "fallbackModels": [],
+  "apiKey": "PUT-YOUR-KEY-HERE",
+  "inferenceTimeoutMs": 90000,
+  "maxCompletionTokens": 16000,
+
+  "_setup": "Copy this file to config.json and fill in baseUrl, model and apiKey. config.json is gitignored, so your key stays out of the repository. If you would rather not write the key to disk at all, leave config.json absent and set SOC_BASE_URL, SOC_MODEL and SOC_API_KEY in the environment instead.",
+  "_endpoint": "Any OpenAI-compatible chat/completions endpoint works. The request POSTs to {baseUrl}chat/completions with an 'api-key' header and uses response_format json_schema with strict:true, so the agent physically cannot return a classification outside the closed set. Note that some models reject 'max_tokens' and require 'max_completion_tokens', which is what this code sends.",
+  "_fallback": "fallbackModels takes further deployment names on the same resource. The agent fails over to each in turn on quota exhaustion or an unresponsive endpoint before declaring itself degraded.",
+  "_noKey": "The server starts without a key. Triage then fails safe to the human queue, exactly as it would in production — and any alert with a cached verdict in cache/ still replays in full."
+}

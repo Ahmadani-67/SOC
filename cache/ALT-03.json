@@ -1,0 +1,479 @@
+{
+ "alertId": "ALT-03",
+ "status": "complete",
+ "wave": 2,
+ "alertType": "identity.impossible_travel",
+ "title": "Staff member signed in from Portugal an hour after signing in from London",
+ "severity": "Medium",
+ "verdict": {
+  "classification": "Insufficient Information",
+  "confidence": 78,
+  "executive_summary": "The alert shows Sofia Novak signing in at 08:19 from London and again at 09:26 from Lisbon, 67 minutes apart, which matches an impossible-travel pattern. Both sign-ins used her usual managed laptop NB-OPS-052 and both passed MFA on her registered phone, with no suspicious follow-on activity. A benign explanation exists because the Lisbon IP is on a mobile network consistent with roaming, but travel or roaming authorisation for this user cannot be confirmed from available sources, so Tier 1 cannot close it under the playbook.",
+  "rationale": "This alert type has a matching playbook entry and the required checks were performed. The evidence supports a plausible benign scenario: the same known managed device was used for both sign-ins, MFA was satisfied on the user's registered phone, the Lisbon IP belongs to a mobile carrier consistent with roaming, the user is standard privilege, the host is low criticality, and there was no suspicious activity in either session. However, the playbook allows closure only if a VPN, proxy or corporate roaming explanation explains the location and the device is known managed, in addition to the general close rules. Here, the device condition is met, but the infrastructure explanation is only plausible, not confirmed: there is no record of travel, roaming enablement, or other organisational data proving the user was legitimately abroad at that time. The deciding fact is whether Sofia Novak was physically travelling in Portugal or otherwise legitimately using mobile roaming at 09:26Z. That fact was not obtained from available tooling, so the alert cannot be closed and should be held pending user or manager confirmation rather than escalated immediately, because there is no sign of impact or malicious follow-on activity.",
+  "claim_restated": "The rule claims Sofia Novak authenticated from two locations too far apart to travel between in the time available.",
+  "clean_findings": [
+   "Both sign-ins used NB-OPS-052, which is Sofia Novak's typical managed device.",
+   "NB-OPS-052 is fully patched, EDR healthy, and compliant with device policy.",
+   "Both sign-ins passed MFA using the user's registered authenticator phone.",
+   "The user is a standard, non-VIP individual contributor with no special access.",
+   "The asset business criticality is low and it is not internet-exposed.",
+   "No unusual follow-on activity occurred in either session: no mail rules, unusual file access, or settings changes.",
+   "Sign-in risk level for the account is Low.",
+   "Behavioural baseline comparison reported no deviations on measured dimensions.",
+   "No related alerts were found in the correlation window.",
+   "Threat intelligence returned no data on 213.13.146.90 rather than a malicious reputation hit.",
+   "No prior occurrence of this exact pattern on these entities was seen in 12 months of retained history."
+  ],
+  "innocent_explanation": "Sofia Novak was legitimately travelling and signed in from her normal managed laptop while roaming on a Portuguese mobile network; this fits the evidence that both sign-ins came from her usual device, both were approved with her registered MFA phone, the Lisbon IP belongs to a mobile carrier, and there was no suspicious activity after either sign-in.",
+  "malicious_explanation": "An attacker obtained Sofia Novak's password and successfully completed MFA, then accessed the account from Portugal while the legitimate user had recently signed in from London; this would be supported by confirmed user denial of travel, evidence of MFA fatigue or compromise, session anomalies, or suspicious follow-on actions from the Lisbon session.",
+  "deciding_fact": "Whether Sofia Novak was legitimately in Portugal or otherwise expected to be using mobile roaming at the time of the 09:26Z sign-in.",
+  "deciding_fact_obtained": false,
+  "deciding_fact_supports": "not obtained",
+  "close_kind": "n/a",
+  "hold_waiting_for": "Confirmation from the user or her manager/system owner whether she was travelling in Portugal or legitimately using mobile roaming at 2026-08-29T09:26:00Z.",
+  "hold_who_can_answer": "Sofia Novak; if unavailable, her manager Colin Reeve or Operations management with access to travel/leave context.",
+  "containment_considered": "No containment was initiated. Account disablement, session revocation, or host isolation were considered disproportionate at Tier 1 because the account is standard privilege, the device is the user's normal managed laptop, MFA succeeded on the registered phone, and there is no evidence of impact or suspicious follow-on activity.",
+  "could_not_check": [
+   "Whether Sofia Novak was actually travelling at the time of the Lisbon sign-in because her calendar is not visible to SOC.",
+   "Whether roaming had been arranged or enabled for Sofia Novak because telecom/travel records are not connected to SOC tooling.",
+   "Whether HR leave or travel records support the Portugal location because those records are not integrated with security tools."
+  ],
+  "reasoning_chain": [
+   {
+    "step": 1,
+    "hypothesis": "This is a benign impossible-travel alert caused by legitimate travel or mobile roaming.",
+    "evidence_for": [
+     "The second location is Lisbon and the IP belongs to a mobile phone network, which is consistent with roaming abroad.",
+     "Both sign-ins came from NB-OPS-052, the same company laptop the user normally uses.",
+     "Both sign-ins passed MFA on the user's own registered phone.",
+     "No suspicious follow-on activity occurred in either session.",
+     "The user is standard privilege and the device is low criticality.",
+     "Behavioural baseline reported no deviations."
+    ],
+    "evidence_against": [
+     "The user's typical location is London only.",
+     "There is no connected travel, holiday, or roaming record confirming legitimate presence in Portugal.",
+     "This pattern has not occurred before for these entities in 12 months."
+    ],
+    "conclusion": "Benign travel/roaming is plausible and supported by several indicators, but not confirmed."
+   },
+   {
+    "step": 2,
+    "hypothesis": "This is a true account compromise with attacker access from Portugal.",
+    "evidence_for": [
+     "The sign-ins are geographically inconsistent within 67 minutes.",
+     "Portugal is not listed as a typical location for the user.",
+     "No recent password change reduces the chance this was a post-reset anomaly."
+    ],
+    "evidence_against": [
+     "The same known managed device was used for both sign-ins rather than a new or unmanaged device.",
+     "MFA was completed on the user's registered phone.",
+     "No suspicious actions followed either sign-in.",
+     "Sign-in risk level is Low, no correlated alerts exist, and baseline comparison found no deviations."
+    ],
+    "conclusion": "Compromise cannot be ruled out, but current evidence does not show impact or strong supporting indicators."
+   },
+   {
+    "step": 3,
+    "hypothesis": "Tier 1 can close this as a benign true positive.",
+    "evidence_for": [
+     "Known managed device condition is satisfied.",
+     "A mobile-roaming explanation is plausible.",
+     "All mandatory enrichment sources responded."
+    ],
+    "evidence_against": [
+     "The deciding fact confirming legitimate travel/roaming was not obtained.",
+     "Playbook close requires the infrastructure explanation to explain the event, not merely be possible.",
+     "General close rules require a specific innocent explanation with evidence and the deciding fact obtained."
+    ],
+    "conclusion": "Closure is not permitted at Tier 1."
+   }
+  ],
+  "playbook_checks": [
+   {
+    "check": "Confirm alert type has a playbook entry",
+    "performed": true,
+    "outcome": "Yes. Playbook §6 'Impossible travel or odd location' applies."
+   },
+   {
+    "check": "Two logins and their times",
+    "performed": true,
+    "outcome": "Verified sign-ins at 2026-08-29T08:19:00Z from London and 2026-08-29T09:26:00Z from Lisbon, 67 minutes apart."
+   },
+   {
+    "check": "VPN, proxy and mobile-roaming explanations",
+    "performed": true,
+    "outcome": "No evidence of known corporate VPN or proxy from provided data. Lisbon IP 213.13.146.90 belongs to a mobile phone network, which is consistent with roaming, but no organisational record confirms roaming/travel for this user."
+   },
+   {
+    "check": "Device used",
+    "performed": true,
+    "outcome": "Both sign-ins used NB-OPS-052, the user's typical managed Windows 11 laptop; patched, EDR healthy, compliant."
+   },
+   {
+    "check": "Whether the account has travelled before",
+    "performed": true,
+    "outcome": "No prior occurrence of this pattern on these entities in 12 months; typical locations show London only."
+   },
+   {
+    "check": "Asset criticality and account privilege context",
+    "performed": true,
+    "outcome": "User is standard privilege, non-VIP; host business criticality is low."
+   },
+   {
+    "check": "Approved change or travel record covering this asset/action/time",
+    "performed": true,
+    "outcome": "No approved travel/roaming/change record available to SOC tooling."
+   },
+   {
+    "check": "Session follow-on activity review",
+    "performed": true,
+    "outcome": "No mail rules created, no unusual file access, and no settings changes in either session."
+   }
+  ],
+  "timeline": [
+   {
+    "timestamp": "2026-08-29T08:19:00Z",
+    "event": "Sofia Novak signed in from London using managed laptop NB-OPS-052; MFA approved on registered phone."
+   },
+   {
+    "timestamp": "2026-08-29T09:26:00Z",
+    "event": "Sofia Novak signed in from Lisbon using the same managed laptop NB-OPS-052 from IP 213.13.146.90 on a mobile network; MFA approved on registered phone."
+   },
+   {
+    "timestamp": "2026-08-29T09:26:00Z",
+    "event": "Detection triggered for impossible travel based on London-to-Lisbon sign-ins 67 minutes apart."
+   },
+   {
+    "timestamp": "2026-08-29T09:26:00Z",
+    "event": "No suspicious follow-on activity observed in either session and no related alerts correlated."
+   }
+  ],
+  "attack_mapping": [],
+  "recommended_next_steps": [
+   "Contact Sofia Novak and ask whether she was physically in Portugal or otherwise legitimately roaming at 2026-08-29T09:26:00Z.",
+   "If Sofia Novak is unavailable, confirm travel context with manager Colin Reeve or Operations management.",
+   "If the user denies travel, escalate immediately to Tier 2 for identity compromise investigation and consider session revocation/account protection actions.",
+   "If the user confirms travel/roaming, document the confirmation and close as Benign True Positive.",
+   "If available to Tier 2, review identity provider session details for token continuity, device identifiers, and any MFA prompt anomalies around both sign-ins."
+  ],
+  "injection_attempt_detected": false,
+  "injection_evidence": ""
+ },
+ "policy": {
+  "triggers": [],
+  "confidence": 78,
+  "confidenceNotes": [],
+  "threshold": 85,
+  "disposition": "HOLD",
+  "dispositionReason": "Answerable, but not by the AI right now. The deciding fact needs someone to be asked: Sofia Novak; if unavailable, her manager Colin Reeve or Operations management with access to travel/leave context..",
+  "wouldHaveBeen": "ESCALATE",
+  "actions": [],
+  "withheld": [],
+  "hold": {
+   "waitingFor": "Confirmation from the user or her manager/system owner whether she was travelling in Portugal or legitimately using mobile roaming at 2026-08-29T09:26:00Z.",
+   "whoCanAnswer": "Sofia Novak; if unavailable, her manager Colin Reeve or Operations management with access to travel/leave context.",
+   "expiresAt": "2026-09-03T15:58:02.759Z",
+   "onExpiry": "Escalates to Tier 2. A hold never closes on expiry and never just ages."
+  },
+  "closeChecks": [
+   {
+    "ok": false,
+    "text": "A benign verdict was reached"
+   },
+   {
+    "ok": true,
+    "text": "A specific innocent explanation was given, not just an absence of bad indicators"
+   },
+   {
+    "ok": true,
+    "text": "The deciding fact was named"
+   },
+   {
+    "ok": false,
+    "text": "The deciding fact was actually obtained"
+   },
+   {
+    "ok": false,
+    "text": "The deciding fact supports the innocent explanation"
+   },
+   {
+    "ok": true,
+    "text": "No hard trigger from 'Never close these' applies"
+   },
+   {
+    "ok": true,
+    "text": "Every enrichment source answered — none timed out or was skipped"
+   },
+   {
+    "ok": false,
+    "text": "Confidence is at or above the 85% bar to act alone"
+   }
+  ],
+  "blockedBy": [
+   {
+    "ok": false,
+    "text": "A benign verdict was reached"
+   },
+   {
+    "ok": false,
+    "text": "The deciding fact was actually obtained"
+   },
+   {
+    "ok": false,
+    "text": "The deciding fact supports the innocent explanation"
+   },
+   {
+    "ok": false,
+    "text": "Confidence is at or above the 85% bar to act alone"
+   }
+  ],
+  "closeKind": "n/a",
+  "playbookVersion": "PB-T1-001 v0.2",
+  "totalMs": 28815
+ },
+ "package": {
+  "sections": {
+   "1 · Incident, rule, playbook version": {
+    "incidentId": "ALT-03",
+    "rule": "Sign-in from two places too far apart for the time between them",
+    "alertType": "identity.impossible_travel",
+    "playbookEntry": "Impossible travel or odd location (Wave 2 — Identity)",
+    "playbookVersion": "PB-T1-001 v0.2"
+   },
+   "2 · Times": {
+    "firstOccurred": "2026-08-29T09:26:00Z",
+    "triagedAt": "2026-09-03T11:58:02.759Z",
+    "timeToTriage": "29s"
+   },
+   "3 · What the rule claims, in one sentence": "The rule claims Sofia Novak authenticated from two locations too far apart to travel between in the time available.",
+   "4 · The triggering events, raw": [
+    "Signed in at 08:19 from London, then again at 09:26 from Lisbon — 67 minutes apart",
+    "Both sign-ins came from NB-OPS-052, the same company laptop she always uses, and it is fully up to date",
+    "Both sign-ins passed the second security check on her own registered phone",
+    "The Lisbon address belongs to a mobile phone network, which is what roaming abroad normally looks like — but we do not hold a record of who has roaming enabled",
+    "Nothing else happened in either session: no mail rules created, no files accessed unusually, no settings changed",
+    "She is an ordinary staff member with no special access",
+    "Her calendar is private to her team, so we cannot see whether she is travelling",
+    "HR holiday records are not connected to the security tools"
+   ],
+   "5 · Every entity, typed": {
+    "users": [
+     "s.novak@northbank.example"
+    ],
+    "mailboxes": [],
+    "hosts": [
+     "NB-OPS-052"
+    ],
+    "ips": [
+     "213.13.146.90"
+    ],
+    "domains": [],
+    "urls": [],
+    "hashes": []
+   },
+   "6 · Asset context — owner, criticality, service": {
+    "NB-OPS-052": {
+     "owner": "Operations IT",
+     "businessCriticality": "Low",
+     "environment": "Production",
+     "internetExposure": "None",
+     "os": "Windows 11 23H2",
+     "patchState": "Current (last patched 5 days ago)",
+     "securityAgents": "EDR healthy, compliant with device policy",
+     "dataClassification": "Internal — operations"
+    }
+   },
+   "7 · Account context — type, privilege, department": {
+    "s.novak@northbank.example": {
+     "displayName": "Sofia Novak",
+     "role": "Operations Coordinator",
+     "department": "Operations",
+     "manager": "Colin Reeve",
+     "seniority": "Individual contributor",
+     "privilegeLevel": "Standard user",
+     "groups": [
+      "Operations",
+      "All-Staff"
+     ],
+     "vip": false,
+     "jmlStatus": "Steady (hired 2022-08-15)",
+     "recentPasswordChange": "None in 150 days",
+     "mfaState": "Registered — Authenticator push",
+     "signInRiskLevel": "Low",
+     "typicalHours": "08:00–17:00 GMT",
+     "typicalLocations": [
+      "London, GB"
+     ],
+     "typicalDevices": [
+      "NB-OPS-052 (managed)"
+     ],
+     "notes": "No record of whether roaming or travel has been arranged for this person. HR travel data is not connected to the SOC."
+    }
+   },
+   "8 · Every lookup, including the clean ones": {
+    "threatIntelligence": {
+     "213.13.146.90": [
+      {
+       "source": "All feeds",
+       "verdict": "No data",
+       "confidence": 0,
+       "firstSeen": "—",
+       "campaign": "—"
+      }
+     ]
+    },
+    "cameBackClean": [
+     "Both sign-ins used NB-OPS-052, which is Sofia Novak's typical managed device.",
+     "NB-OPS-052 is fully patched, EDR healthy, and compliant with device policy.",
+     "Both sign-ins passed MFA using the user's registered authenticator phone.",
+     "The user is a standard, non-VIP individual contributor with no special access.",
+     "The asset business criticality is low and it is not internet-exposed.",
+     "No unusual follow-on activity occurred in either session: no mail rules, unusual file access, or settings changes.",
+     "Sign-in risk level for the account is Low.",
+     "Behavioural baseline comparison reported no deviations on measured dimensions.",
+     "No related alerts were found in the correlation window.",
+     "Threat intelligence returned no data on 213.13.146.90 rather than a malicious reputation hit.",
+     "No prior occurrence of this exact pattern on these entities was seen in 12 months of retained history."
+    ]
+   },
+   "9 · Related incidents and how they were closed": {
+    "related": "None found in the correlation window.",
+    "history": {
+     "note": "No prior occurrence of this pattern on these entities in 12 months of retained history."
+    }
+   },
+   "10 · Timeline of what happened, in order": [
+    {
+     "timestamp": "2026-08-29T08:19:00Z",
+     "event": "Sofia Novak signed in from London using managed laptop NB-OPS-052; MFA approved on registered phone."
+    },
+    {
+     "timestamp": "2026-08-29T09:26:00Z",
+     "event": "Sofia Novak signed in from Lisbon using the same managed laptop NB-OPS-052 from IP 213.13.146.90 on a mobile network; MFA approved on registered phone."
+    },
+    {
+     "timestamp": "2026-08-29T09:26:00Z",
+     "event": "Detection triggered for impossible travel based on London-to-Lisbon sign-ins 67 minutes apart."
+    },
+    {
+     "timestamp": "2026-08-29T09:26:00Z",
+     "event": "No suspicious follow-on activity observed in either session and no related alerts correlated."
+    }
+   ],
+   "11 · The innocent explanation, and why it could not be confirmed": "Sofia Novak was legitimately travelling and signed in from her normal managed laptop while roaming on a Portuguese mobile network; this fits the evidence that both sign-ins came from her usual device, both were approved with her registered MFA phone, the Lisbon IP belongs to a mobile carrier, and there was no suspicious activity after either sign-in.",
+   "12 · The malicious explanation, and what supports it": "An attacker obtained Sofia Novak's password and successfully completed MFA, then accessed the account from Portugal while the legitimate user had recently signed in from London; this would be supported by confirmed user denial of travel, evidence of MFA fatigue or compromise, session anomalies, or suspicious follow-on actions from the Lisbon session.",
+   "13 · The one question that would settle it": {
+    "decidingFact": "Whether Sofia Novak was legitimately in Portugal or otherwise expected to be using mobile roaming at the time of the 09:26Z sign-in.",
+    "obtained": false,
+    "supports": "not obtained",
+    "whyNotAnswered": "Sofia Novak; if unavailable, her manager Colin Reeve or Operations management with access to travel/leave context."
+   },
+   "14 · Suggested next steps for Tier 2": [
+    "Contact Sofia Novak and ask whether she was physically in Portugal or otherwise legitimately roaming at 2026-08-29T09:26:00Z.",
+    "If Sofia Novak is unavailable, confirm travel context with manager Colin Reeve or Operations management.",
+    "If the user denies travel, escalate immediately to Tier 2 for identity compromise investigation and consider session revocation/account protection actions.",
+    "If the user confirms travel/roaming, document the confirmation and close as Benign True Positive.",
+    "If available to Tier 2, review identity provider session details for token continuity, device identifiers, and any MFA prompt anomalies around both sign-ins."
+   ],
+   "15 · Containment considered and not done": "No containment was initiated. Account disablement, session revocation, or host isolation were considered disproportionate at Tier 1 because the account is standard privilege, the device is the user's normal managed laptop, MFA succeeded on the registered phone, and there is no evidence of impact or suspicious follow-on activity.",
+   "16 · Confidence, and what could not be checked": {
+    "confidence": 78,
+    "adjustments": [],
+    "couldNotCheck": [
+     "Whether Sofia Novak was actually travelling at the time of the Lisbon sign-in because her calendar is not visible to SOC.",
+     "Whether roaming had been arranged or enabled for Sofia Novak because telecom/travel records are not connected to SOC tooling.",
+     "Whether HR leave or travel records support the Portugal location because those records are not integrated with security tools."
+    ],
+    "dataGaps": "None."
+   }
+  },
+  "sectionCount": 16,
+  "missing": [],
+  "completeness": 100
+ },
+ "siem": {
+  "Resolution": "Open",
+  "Status": "Active",
+  "Cleared Reason": "Not set",
+  "Comments": "Waiting for: Confirmation from the user or her manager/system owner whether she was travelling in Portugal or legitimately using mobile roaming at 2026-08-29T09:26:00Z.. Owed by: Sofia Novak; if unavailable, her manager Colin Reeve or Operations management with access to travel/leave context.. Expires: 2026-09-03T15:58:02.759Z. On expiry it escalates.",
+  "Tag": "Disposition:Hold · PB-T1-001 v0.2",
+  "Case": "No",
+  "writtenAt": "2026-09-03T11:58:02.759Z",
+  "writtenBy": "agent:tier1-triage-agent"
+ },
+ "correlation": {
+  "related": [],
+  "campaign": null,
+  "duplicates": []
+ },
+ "enrichment": {
+  "dataGaps": [],
+  "sources": {
+   "behavioural": {
+    "source": "UEBA behavioural baselines",
+    "status": "ok",
+    "latencyMs": 215,
+    "flags": []
+   },
+   "asset": {
+    "source": "CMDB / asset inventory + EDR device inventory",
+    "status": "ok",
+    "latencyMs": 311,
+    "flags": []
+   },
+   "identity": {
+    "source": "Identity provider + HR / identity governance",
+    "status": "ok",
+    "latencyMs": 355,
+    "flags": []
+   },
+   "threatIntel": {
+    "source": "Threat intelligence feeds",
+    "status": "ok",
+    "latencyMs": 435,
+    "flags": []
+   },
+   "historical": {
+    "source": "Historical alert archive (12 months)",
+    "status": "ok",
+    "latencyMs": 450,
+    "flags": []
+   }
+  },
+  "playbook": {
+   "name": "Impossible travel or odd location",
+   "wave": "Wave 2 — Identity",
+   "check": "The two logins and their times; VPN, proxy and mobile-roaming explanations; the device used; whether the account has travelled before",
+   "closeOnlyIf": "A VPN, proxy or corporate roaming explains it, and the device is a known managed one",
+   "alwaysEscalateIf": "No infrastructure explanation; a new or unmanaged device; the account is privileged; anything else happened in the session"
+  }
+ },
+ "timings": {
+  "pickupMs": 1,
+  "enrichmentMs": 451,
+  "reasoningMs": 28361,
+  "totalMs": 28815
+ },
+ "usage": {
+  "promptTokenCount": 3278,
+  "candidatesTokenCount": 2075,
+  "totalTokenCount": 5353,
+  "reasoningTokenCount": 0
+ },
+ "versions": {
+  "agent": "tier1-triage-agent 0.9.3",
+  "promptLibrary": "prompts@2026.08.29-1",
+  "playbookLibrary": "playbooks@4.2.0",
+  "policyEngine": "policy@1.4.0",
+  "decoding": "temperature=0.1, top_p=0.9 (pinned)",
+  "model": "gpt-5.4-2026-03-05"
+ },
+ "humanVerdict": "Benign True Positive",
+ "humanNote": "The supervisor messaged her. She was on holiday in Portugal and had signed in to check her rota. Two minutes of human time — but nothing in the evidence could have told the AI that.",
+ "decidedAt": "2026-09-03T11:58:02.759Z",
+ "override": null,
+ "prompt": "Triage the following alert and return the structured verdict.\n\n### ALERT\nID: ALT-03\nType: identity.impossible_travel\nTitle: Staff member signed in from Portugal an hour after signing in from London\nDetection rule: Sign-in from two places too far apart for the time between them\nWhat the rule was written to catch: Fires when someone signs in from two locations they could not physically travel between in the time available. Catches stolen passwords — and fires constantly on holidays, roaming phones and VPNs.\nSeverity as assigned by the detection source: Medium\nCreated: 2026-08-29T09:26:00Z\nDetection source: Sign-in monitoring\n\n### ENTITIES\n{\n \"users\": [\n  \"s.novak@northbank.example\"\n ],\n \"mailboxes\": [],\n \"hosts\": [\n  \"NB-OPS-052\"\n ],\n \"ips\": [\n  \"213.13.146.90\"\n ],\n \"domains\": [],\n \"urls\": [],\n \"hashes\": []\n}\n\n### RAW DETECTION EVIDENCE\n1. Signed in at 08:19 from London, then again at 09:26 from Lisbon — 67 minutes apart\n2. Both sign-ins came from NB-OPS-052, the same company laptop she always uses, and it is fully up to date\n3. Both sign-ins passed the second security check on her own registered phone\n4. The Lisbon address belongs to a mobile phone network, which is what roaming abroad normally looks like — but we do not hold a record of who has roaming enabled\n5. Nothing else happened in either session: no mail rules created, no files accessed unusually, no settings changed\n6. She is an ordinary staff member with no special access\n7. Her calendar is private to her team, so we cannot see whether she is travelling\n8. HR holiday records are not connected to the security tools\n\n### ENRICHMENT — IDENTITY CONTEXT\n{\n \"s.novak@northbank.example\": {\n  \"displayName\": \"Sofia Novak\",\n  \"role\": \"Operations Coordinator\",\n  \"department\": \"Operations\",\n  \"manager\": \"Colin Reeve\",\n  \"seniority\": \"Individual contributor\",\n  \"privilegeLevel\": \"Standard user\",\n  \"groups\": [\n   \"Operations\",\n   \"All-Staff\"\n  ],\n  \"vip\": false,\n  \"jmlStatus\": \"Steady (hired 2022-08-15)\",\n  \"recentPasswordChange\": \"None in 150 days\",\n  \"mfaState\": \"Registered — Authenticator push\",\n  \"signInRiskLevel\": \"Low\",\n  \"typicalHours\": \"08:00–17:00 GMT\",\n  \"typicalLocations\": [\n   \"London, GB\"\n  ],\n  \"typicalDevices\": [\n   \"NB-OPS-052 (managed)\"\n  ],\n  \"notes\": \"No record of whether roaming or travel has been arranged for this person. HR travel data is not connected to the SOC.\"\n }\n}\n\n### ENRICHMENT — ASSET CONTEXT\n{\n \"NB-OPS-052\": {\n  \"owner\": \"Operations IT\",\n  \"businessCriticality\": \"Low\",\n  \"environment\": \"Production\",\n  \"internetExposure\": \"None\",\n  \"os\": \"Windows 11 23H2\",\n  \"patchState\": \"Current (last patched 5 days ago)\",\n  \"securityAgents\": \"EDR healthy, compliant with device policy\",\n  \"dataClassification\": \"Internal — operations\"\n }\n}\n\n### ENRICHMENT — THREAT INTELLIGENCE (all configured feeds)\n{\n \"213.13.146.90\": [\n  {\n   \"source\": \"All feeds\",\n   \"verdict\": \"No data\",\n   \"confidence\": 0,\n   \"firstSeen\": \"—\",\n   \"campaign\": \"—\"\n  }\n ]\n}\n\n### ENRICHMENT — HISTORICAL DISPOSITIONS FOR THIS PATTERN\n{\n \"note\": \"No prior occurrence of this pattern on these entities in 12 months of retained history.\"\n}\n\n### ENRICHMENT — BEHAVIOURAL BASELINE COMPARISON\n{\n \"deviations\": [\n  {\n   \"dimension\": \"Overall\",\n   \"severity\": \"None\",\n   \"detail\": \"Observed activity is consistent with the established baseline for these entities on every dimension measured.\"\n  }\n ],\n \"highSeverityDeviationCount\": 0\n}\n\n### CORRELATION\nNo related alerts found sharing entities or infrastructure in the correlation window.\n\n### PLAYBOOK §6 — IMPOSSIBLE TRAVEL OR ODD LOCATION\nWave 2 — Identity\n\nCHECK THESE: The two logins and their times; VPN, proxy and mobile-roaming explanations; the device used; whether the account has travelled before\n\nCLOSE ONLY IF: A VPN, proxy or corporate roaming explains it, and the device is a known managed one\n(This is IN ADDITION to the §2 Close rules, never instead of them.)\n\nALWAYS ESCALATE IF: No infrastructure explanation; a new or unmanaged device; the account is privileged; anything else happened in the session\n\nRecord each of the \"check these\" items in playbook_checks with whether you could perform it and what it showed.\n\n### PLAYBOOK §3 — HARD TRIGGERS ALREADY EVALUATED IN CODE\nNone of the fifteen hard triggers fired. The outcome therefore rests on your analysis.\n\n### DATA GAPS RECORDED BY THE ORCHESTRATOR\nNone. All mandatory enrichment sources returned complete data.\n\n### APPROVED ORGANISATIONAL LESSONS (from reviewed analyst feedback)\n- LSN-0019 (v1): The Milan egress range 194.62.18.0/24 is a corporate VPN concentrator, not a third-party location. Do not treat it as an unfamiliar location for EMEA sales staff.\n",
+ "replayed": false,
+ "review": null
+}

@@ -1,8 +1,12 @@
-# Contains the API key. See the security note in README.md.
+# Contains the API key. Copy config.example.json to config.json to create it.
 config.json
 
 # Runtime artefacts
-cache/
 srv.log
 srv.err
 *.txt
+node_modules/
+
+# cache/ is deliberately NOT ignored. The cached verdicts hold no key material — only model
+# output over fictional data — and committing them is what lets a fresh clone run the whole
+# walkthrough without an inference endpoint. Delete the folder and re-warm to rebuild it.

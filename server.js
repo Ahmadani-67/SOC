@@ -12,7 +12,42 @@ import { buildPrompt, callModel, applyPolicy, buildEscalationPackage, hardTrigge
 import { writeCache, readCache, cachedIds } from "./lib/cache.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json"), "utf8"));
+
+/**
+ * Configuration comes from config.json, from the environment, or from both.
+ *
+ * config.json is gitignored precisely because it holds a key, which means a fresh clone does not
+ * have one. That is not a reason to crash on startup: the capability is designed to fail safe when
+ * the reasoning layer is unreachable, so it must be able to start and demonstrate exactly that.
+ * Any alert with a cached verdict still replays in full.
+ */
+function loadConfig() {
+  const file = path.join(__dirname, "config.json");
+  let f = {};
+  if (fs.existsSync(file)) {
+    try {
+      f = JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch (err) {
+      console.error(`\n  config.json is not valid JSON — ${err.message}`);
+      console.error(`  Fix it, or delete it and use the SOC_* environment variables instead.\n`);
+      process.exit(1);
+    }
+  }
+  const num = (v, fallback) => (Number.isFinite(Number(v)) && v !== "" && v != null ? Number(v) : fallback);
+  return {
+    port: num(process.env.SOC_PORT, num(f.port, 8787)),
+    provider: process.env.SOC_PROVIDER || f.provider || "inference endpoint",
+    baseUrl: process.env.SOC_BASE_URL || f.baseUrl || "",
+    model: process.env.SOC_MODEL || f.model || "",
+    fallbackModels: f.fallbackModels || [],
+    apiKey: process.env.SOC_API_KEY || f.apiKey || "",
+    inferenceTimeoutMs: num(process.env.SOC_TIMEOUT_MS, num(f.inferenceTimeoutMs, 90000)),
+    maxCompletionTokens: num(process.env.SOC_MAX_TOKENS, num(f.maxCompletionTokens, 16000)),
+    reasoningEffort: process.env.SOC_REASONING_EFFORT || f.reasoningEffort
+  };
+}
+
+const cfg = loadConfig();
 
 // Versioned artefacts recorded against every verdict — BRD NFR-041, NFR-058.
 const CAPABILITY_VERSION = {
@@ -598,8 +633,19 @@ function publicState() {
 }
 
 server.listen(cfg.port, () => {
+  const configured = cfg.baseUrl && cfg.model && cfg.apiKey;
+  const cached = cachedIds();
   console.log(`\n  AI Tier 1 Analyst — demo console`);
-  console.log(`  Reasoning layer: ${cfg.model} on ${cfg.provider}`);
+  if (configured) {
+    console.log(`  Reasoning layer: ${cfg.model} on ${cfg.provider}`);
+  } else {
+    const missing = [!cfg.baseUrl && "baseUrl", !cfg.model && "model", !cfg.apiKey && "apiKey"].filter(Boolean);
+    console.log(`  Reasoning layer: NOT CONFIGURED — missing ${missing.join(", ")}`);
+    console.log(`  Copy config.example.json to config.json and fill it in, or set SOC_BASE_URL, SOC_MODEL and SOC_API_KEY.`);
+    console.log(cached.length
+      ? `  ${cached.length} cached verdict(s) available (${cached.join(", ")}), so those alerts still replay in full.`
+      : `  With no cached verdicts, every alert will fail safe to the human queue — which is itself worth seeing.`);
+  }
   console.log(`  http://localhost:${cfg.port}\n`);
 });
 
