@@ -142,10 +142,6 @@ function drawQueue() {
 
   const box = $("#queueList"); box.innerHTML = "";
 
-  if (role.id === "tier2") {
-    const done = DATA.alerts.filter((a) => cases[a.id]?.status === "complete").length;
-    if (done) box.append(el("div", "note green", `<b>${counts.ESCALATE} of ${done}</b> alerts reached you. The AI dealt with the rest.`));
-  }
   if (!list.length) {
     box.append(el("p", "pt", query ? `Nothing matches "${esc(query)}".` : "Nothing here yet."));
     $("#navCount").textContent = mine().length || "";
