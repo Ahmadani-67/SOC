@@ -637,7 +637,7 @@ function wire() {
 function drawDash() {
   const m = DATA.metrics || {};
   const d = m.dispositions || {};
-  const done = m.triaged || 0, esc_ = d.ESCALATE || 0, hold = d.HOLD || 0;
+  const done = m.triaged || 0, hold = d.HOLD || 0;
   const miss = (m.falseNegatives || []).length;
   const left = DATA.alerts.length - done;
   const waiting = DATA.alerts.filter(needsMe).length;
@@ -677,7 +677,6 @@ function drawDash() {
     const secsAvg = Math.round((m.mttt?.p95 || 0) / 1000);
     p.append(el("div", "big4",
       kpi(open_.length, "cases on your plate", "everything else was handled without you", open_.length ? "b" : "g", "all")
-      + kpi(done - esc_, "never reached you", `${done} alerts came in, ${esc_} needed a person`, "g")
       + kpi(done ? m.packageCompleteness : 0, "% arrived complete", "no re-gathering the background yourself", "g", null, "%")
       + kpi(secsAvg, "sec to reach you at worst", "a person triaging by hand needs 20–45 min", "b", null, "s")));
 
