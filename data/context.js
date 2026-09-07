@@ -616,6 +616,68 @@ export const playbooks = {
 };
 
 /**
+ * Wave-level rules from PB-T1-001 v0.10 that belong to no single alert type.
+ *
+ * These are reasoning rules, not gate conditions, so they are given to the reasoning layer rather
+ * than enforced in code — and only when they apply. A phishing alert has no use for the XDR
+ * correlation rules, and padding every prompt with rules for other waves makes the ones that do
+ * apply easier to ignore.
+ */
+export const waveRules = {
+  "Wave 3 — Network and cloud": [
+    {
+      title: "§9.1 A block is not a verdict",
+      body: `"It was blocked" tells you the control worked. It tells you nothing about why the traffic existed. The question in this wave is almost never "was it stopped" — it is "what generated it". A blocked outbound connection to a command-and-control server, repeated four thousand times, is a compromised host with a working firewall in front of it. Closing that on "blocked" is the single most common way a real intrusion gets filed as noise.
+A block is evidence about the control. It is NEVER, on its own, the specific innocent explanation the Close test requires. If the traffic came from inside, you still owe an answer to what produced it.`
+    },
+    {
+      title: "§9.2 Direction first",
+      body: `Establish direction before anything else. It changes the default posture more than the signature name does.
+- INBOUND, BLOCKED — internet background noise; every internet-facing address receives this constantly. Closeable on volume and exposure, but only if nothing from that source was allowed.
+- OUTBOUND, BLOCKED — something you own tried to reach it. The control worked; whatever caused it is still running. Look at the source host, not the destination. Repeats escalate.
+- OUTBOUND, ALLOWED — something you own reached it and nothing stopped it. Escalate unless positively explained.
+- INTERNAL TO INTERNAL — lowest volume, highest meaning. Nobody scans your own network by accident. Escalate.`
+    }
+  ],
+  "Wave 4 — XDR": [
+    {
+      title: "§10.1 You are triaging the claim, not the member alerts",
+      body: `An XDR incident is not a new detection. It is a claim that several alerts which already fired belong to one story. The member alerts are usually ordinary Wave 1–3 alerts with their own dispositions. Do not re-triage them. Decide whether the correlation is real and what the timeline actually is.
+Because grouping alerts on a shared entity is the entire point of XDR, member alerts inside this same incident sharing a user or a host is expected and is not by itself evidence of a campaign. An open incident OUTSIDE this correlation still matters.`
+    },
+    {
+      title: "§10.2 Over-correlation and under-correlation",
+      body: `Both are common and they need opposite responses.
+OVER-CORRELATION — unrelated alerts stitched together by something shared for boring reasons: a proxy egress IP, a NAT address, a shared service account, a scanner, a jump host, a shared mailbox. To spot it, remove the shared entity and ask whether anything still links the alerts. If nothing does, say so explicitly in your rationale — but do not treat the member alerts as resolved; they keep their own dispositions.
+UNDER-CORRELATION — the story is real but the incident shows three steps of six, because a domain is not fully onboarded or a tool did not fire. To spot it, look for a hole in the sequence: a success with no preceding attempt, an action with no access, a landing with no delivery. Say which step is missing and where you would expect to find it. NEVER treat the gap as evidence of innocence.`
+    },
+    {
+      title: "§10.2 The vendor's story is a hypothesis, not a finding",
+      body: `XDR correlation logic is a rule like any other and it gets things wrong in both directions. Treat a named attack chain exactly as you treat a rule name in step 2: restate what it claims, then check whether the evidence supports it. State plainly whether the name is carried by two or more independent member alerts or rests on one. An agent that inherits the vendor's conclusion has not triaged anything.`
+    }
+  ]
+};
+
+/**
+ * Extra rules for any behaviour NDR can raise. A deviation alert is not read like a signature alert,
+ * so these apply wherever NDR appears among an entry's sensors.
+ */
+export const ndrRules = [
+  {
+    title: "§9.5 An NDR alert says something changed, not that something is wrong",
+    body: `There is no signature to check and usually nothing was blocked, so the questions from the rest of the wave do not apply. The question is what changed and whether there is a boring reason for it.`
+  },
+  {
+    title: "§9.5 No corroboration is the normal case, not a reason to close",
+    body: `An NDR alert that no other tool confirms is expected — NDR exists to see what has no signature. Requiring EDR or the firewall to agree before escalating defeats the point of owning it. If the host has no EDR agent, that silence is a blind spot, not evidence. Record it as a data gap, never as a clean result.`
+  },
+  {
+    title: "§9.5 Check the baseline age first",
+    body: `An NDR alert is only as good as the baseline behind it. During the learning period, after a network change, or on a newly onboarded segment, "unusual" means nothing. If the baseline for that entity is immature, the alert is NOT TRIAGEABLE: hold it and say so, naming the baseline as what you are waiting for.`
+  }
+];
+
+/**
  * Playbook Section 3 — "Never close these". Fifteen hard triggers.
  * These are evaluated in code from the evidence BEFORE the model is asked anything, and no
  * confidence score, clean reputation result or previous closure overrides them.
