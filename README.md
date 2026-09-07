@@ -151,6 +151,7 @@ than the silence being read as "nothing to see here".
 `applyPolicy()` will only close an alert when **every one** of these holds. Any single failure
 blocks it:
 
+- the playbook permits Tier 1 to close this alert type at all;
 - the verdict is benign;
 - a *specific* innocent explanation was given — "no bad indicators" is explicitly not enough;
 - the deciding fact was named, was actually obtained, and supports the innocent explanation;
@@ -161,6 +162,19 @@ blocks it:
 Anything left over escalates. A **Hold** is not a soft close: it records what is being waited for,
 who owes the answer, and when it expires — and on expiry it escalates. It never closes on expiry
 and never just ages.
+
+### The playbook
+
+The agent works to **PB-T1-001 v0.10**, in `data/context.js`. Four waves, **57 alert types**, and
+the fifteen never-close hard triggers of §3.
+
+An alert type there is a *behaviour*, not a tool — several sensors raise the same behaviour, so
+each Wave 3 entry names the sensors that can produce it and the entry governs regardless of which
+console fired first. Eleven of the 57 carry **"Close only if: Never"**: uncontained malware,
+security-control tampering, ransomware, an allowed connection to a known-bad destination, an
+exploit that got a successful response, and every class B XDR incident. That is a property of the
+alert type, so no verdict and no confidence score reaches it — `applyPolicy()` fixes the
+disposition at ESCALATE before the close test is even considered.
 
 ## Try breaking it
 

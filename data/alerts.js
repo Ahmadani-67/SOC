@@ -72,7 +72,8 @@ export const alerts = [
   // Playbook §2: "Hold means the alert is answerable, but not by you, right now." The one fact that
   // would settle this is whether the person is actually abroad, and only they can say.
   {
-    id: "ALT-03", wave: 2, alertType: "identity.impossible_travel",
+    // Wave 1 under v0.10: identity sits alongside email, because both are about the person.
+    id: "ALT-03", wave: 1, alertType: "identity.impossible_travel",
     title: "Staff member signed in from Portugal an hour after signing in from London",
     detectionRule: "Sign-in from two places too far apart for the time between them",
     ruleIntent:
@@ -100,9 +101,12 @@ export const alerts = [
   }
 ];
 
+// PB-T1-001 v0.10 §6. Four merged waves, each a rollout unit that earns autonomy on its own.
+// Note this is not one wave per tool: an alert type is a behaviour, and several sensors can raise
+// the same behaviour. Identity moved into Wave 1 in v0.10 — the person and their account together.
 export const waveNames = {
-  1: "Email",
-  2: "Accounts",
-  3: "Devices",
-  4: "Cloud"
+  1: "Email & identity",
+  2: "Endpoint",
+  3: "Network & cloud",
+  4: "XDR"
 };

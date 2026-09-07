@@ -43,7 +43,13 @@ const ROLE_ICON = {
   supervisor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>'
 };
 const initials = (s) => String(s).split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-const DOMAIN = { email: "Email", identity: "Accounts", endpoint: "Devices", cloud: "Cloud", custom: "Custom" };
+// Alert-type prefixes to plain labels. PB-T1-001 v0.10 treats an alert type as a behaviour rather
+// than a tool, so several of these are raised by more than one sensor.
+const DOMAIN = {
+  email: "Email", identity: "Accounts", endpoint: "Devices", network: "Network",
+  app: "Apps", traffic: "Traffic", dns: "DNS", webapp: "Web apps",
+  cloud: "Cloud", xdr: "XDR", custom: "Custom"
+};
 const domainOf = (t) => DOMAIN[String(t).split(".")[0]] || "Other";
 // The playbook's seven steps, condensed into what the screen can show.
 const STEPS = ["Received", "Linked up", "Background checks", "Never-close rules", "Thinking", "Decision"];
